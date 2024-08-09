@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
 from langchain.agents import AgentExecutor, OpenAIFunctionsAgent
 from langchain.chat_models import ChatOpenAI
+from langchain.memory import ConversationBufferMemory
 from langchain.prompts import (
     ChatPromptTemplate,
     HumanMessagePromptTemplate,
@@ -27,9 +28,15 @@ prompt = ChatPromptTemplate(
                 "or what colums exist. Instead, use the 'describe_tables' function"
             )
         ),
+        MessagesPlaceholder(variable_name="chat_history"),
         HumanMessagePromptTemplate.from_template("{input}"),
         MessagesPlaceholder(variable_name="agent_scratchpad"),
     ]
+)
+
+memory = ConversationBufferMemory(
+    memory_key="chat_history",
+    return_messages=True,
 )
 
 tools = [
@@ -48,9 +55,9 @@ agent_executer = AgentExecutor(
     agent=agent,
     verbose=True,
     tools=tools,
+    memory=memory,
 )
 
-agent_executer(
-    "Summarize the top 5 most popular products. Write the results to a report file."
-)
-# agent_executer("How many users are there?")
+agent_executer("How many orders are there? Write the result to an html report.")
+
+agent_executer("Repeat the exact same process for users.")
